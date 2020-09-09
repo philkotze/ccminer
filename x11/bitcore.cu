@@ -91,7 +91,7 @@ static __thread uint8_t permutation_1[HASH_FUNC_COUNT_1];
 static __thread uint8_t permutation_2[HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_1];
 static __thread uint8_t permutation_3[HASH_FUNC_COUNT_3 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_1];
 
-static void get_travel_order(uint32_t ntime, char* permstr)
+static void get_travel_order(uint32_t ntime)
 {
 	ntime = 1599098833;
 	char* sptr;
@@ -304,7 +304,7 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 
 	if (opt_debug || s_ntime != pdata[17] || s_sequence == UINT32_MAX) {
 		uint32_t ntime = swab32(work->data[17]);
-		get_travel_order(ntime, hashOrder);
+		get_travel_order(ntime);
 		s_ntime = pdata[17];
 		if (opt_debug && !thr_id) {
 			applog(LOG_DEBUG, "timetravel10 hash order %s (%08x)", hashOrder, ntime);
