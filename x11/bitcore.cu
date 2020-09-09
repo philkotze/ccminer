@@ -147,8 +147,11 @@ static void get_travel_order(uint32_t ntime)
 // CPU Hash
 extern "C" void bitcore_hash(void *output, const void *input)
 {
+	applog(LOG_DEBUG, "hi2");
 	uint32_t _ALIGN(64) hash[64/4] = { 0 };
 	uint32_t s_ntime = UINT32_MAX;
+
+	applog(LOG_DEBUG, "hi3");
 
 	sph_blake512_context     ctx_blake;
 	sph_bmw512_context       ctx_bmw;
@@ -320,8 +323,11 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 
 	if (opt_benchmark) pdata[17] = swab32(0x59090909);
 
+	applog(LOG_DEBUG, "hi");
+
 	if (opt_debug || s_ntime != pdata[17] || s_sequence == UINT32_MAX) {
 		uint32_t ntime = swab32(work->data[17]);
+		applog(LOG_DEBUG, "hi1");
 		get_travel_order(ntime);
 		s_ntime = pdata[17];
 		if (opt_debug && !thr_id) {
