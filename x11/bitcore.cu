@@ -139,13 +139,13 @@ static void get_travel_order(uint32_t ntime)
 	applog(LOG_DEBUG, "h2-4");
 
 	for (int i = 0; i < 8; i++)
-		sprintf(sptr, "%u", (uint32_t)permutation_1[i]);
+		printf("%d", permutation_1[i]);
 
 	for (int i = 8; i < 16; i++)
-		sprintf(sptr, "%u", (uint32_t)permutation_2[i]);
+		printf(sptr, "%d", permutation_2[i]);
 
 	for (int i = 16; i < 23; i++)
-		sprintf(sptr, "%u", (uint32_t)permutation_3[i]);
+		printf(sptr, "%d", permutation_3[i]);
 
 	applog(LOG_DEBUG, "h2-5");
 }
