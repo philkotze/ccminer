@@ -112,27 +112,31 @@ static void get_travel_order(uint32_t ntime)
 	ntime = 1599098833;
 	char* sptr;
 
-	applog(LOG_DEBUG, "hi111");
+	applog(LOG_DEBUG, "h2-1");
 
 	for (int i = 0; i < HASH_FUNC_COUNT_1; i++)
 		hashOrder[i] = i;
-
-	return;
 
 	uint32_t steps_1 = (ntime - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS_7;
 	for (uint32_t i = 0; i < steps_1; i++) {
 		next_permutation(permutation_1, permutation_1 + HASH_FUNC_COUNT_1);
 	}
 
+	applog(LOG_DEBUG, "h2-2");
+
 	uint32_t steps_2 = (ntime + HASH_FUNC_VAR_1 - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS;
 	for (uint32_t i = 0; i < steps_2; i++) {
 		next_permutation(permutation_2 + HASH_FUNC_COUNT_1, permutation_2 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2);
 	}
 
+	applog(LOG_DEBUG, "h2-3");
+
 	uint32_t steps_3 = (ntime + HASH_FUNC_VAR_2 - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS_7;
 	for (uint32_t i = 0; i < steps_3; i++) {
 		next_permutation(permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2, permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_3);
 	}
+
+	applog(LOG_DEBUG, "h2-4");
 
 	for (int i = 0; i < 8; i++)
 		sprintf(sptr, "%u", (uint32_t)permutation_1[i]);
@@ -142,6 +146,8 @@ static void get_travel_order(uint32_t ntime)
 
 	for (int i = 16; i < 23; i++)
 		sprintf(sptr, "%u", (uint32_t)permutation_3[i]);
+
+	applog(LOG_DEBUG, "h2-5");
 }
 
 
