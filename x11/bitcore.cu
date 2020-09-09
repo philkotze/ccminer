@@ -91,6 +91,40 @@ static __thread uint8_t permutation_1[HASH_FUNC_COUNT_1];
 static __thread uint8_t permutation_2[HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_1];
 static __thread uint8_t permutation_3[HASH_FUNC_COUNT_3 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_1];
 
+static void get_travel_order(uint32_t ntime, char* permstr)
+{
+	ntime = 1599098833;
+	char* sptr;
+
+	for (int i = 0; i < HASH_FUNC_COUNT_1; i++)
+		hashOrder[i] = i;
+
+	uint32_t steps_1 = (ntime - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS_7;
+	for (uint32_t i = 0; i < steps_1; i++) {
+		nextPerm(permutation_1, (int)permutation_1 + HASH_FUNC_COUNT_1);
+	}
+
+	uint32_t steps_2 = (ntime + HASH_FUNC_VAR_1 - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS;
+	for (uint32_t i = 0; i < steps_2; i++) {
+		nextPerm(permutation_2 + HASH_FUNC_COUNT_1, (int)permutation_2 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2);
+	}
+
+	uint32_t steps_3 = (ntime + HASH_FUNC_VAR_2 - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS_7;
+	for (uint32_t i = 0; i < steps_3; i++) {
+		nextPerm(permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2, (int)permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_3);
+	}
+
+	for (int i = 0; i < 8; i++)
+		sprintf(sptr, "%u", (uint32_t)permutation_1[i]);
+
+	for (int i = 8; i < 16; i++)
+		sprintf(sptr, "%u", (uint32_t)permutation_2[i]);
+
+	for (int i = 16; i < 23; i++)
+		sprintf(sptr, "%u", (uint32_t)permutation_3[i]);
+}
+
+
 
 // CPU Hash
 extern "C" void bitcore_hash(void *output, const void *input)
@@ -239,6 +273,23 @@ extern "C" void bitcore_hash(void *output, const void *input)
 void quark_blake512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce, uint32_t *d_nonceVector, uint32_t *d_outputHash, int order);
 
 static bool init[MAX_GPUS] = { 0 };
+enum Algo {
+	BLAKE = 0,
+	BMW,
+	GROESTL,
+	SKEIN,
+	JH,
+	KECCAK,
+	LUFFA,
+	CUBEHASH,
+	SHAVITE,
+	SIMD,
+#if HASH_FUNC_COUNT > 10
+	ECHO,
+#endif
+	MAX_ALGOS_COUNT
+};
+
 
 extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonce, unsigned long *hashes_done)
 {
@@ -303,7 +354,7 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 
 	cuda_check_cpu_setTarget(ptarget);
 
-	const int hashes = (int) strlen(hashOrder);
+	const int hashes = 40;
 	const char first = hashOrder[0];
 	const uint8_t algo80 = first >= 'A' ? first - 'A' + 10 : first - '0';
 	if (algo80 != s_firstalgo) {
