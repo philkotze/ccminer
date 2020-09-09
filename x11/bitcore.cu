@@ -44,33 +44,49 @@ extern "C" {
 
 static uint32_t *d_hash[MAX_GPUS];
 
-inline void swap8(uint8_t *a, uint8_t *b)
-{
-	uint8_t t = *a;
+static void swap(int* a, int* b) {
+	int c = *a;
 	*a = *b;
-	*b = t;
+	*b = c;
 }
 
+static void reverse(int* pbegin, int* pend) {
+	while ((pbegin != pend) && (pbegin != --pend))
+		swap(pbegin++, pend);
+}
 
-static int nextPerm(uint8_t n[], int count)
-{
-	int tail, i, j;
+static void next_permutation(int* pbegin, int* pend) {
+	if (pbegin == pend)
+		return;
 
-	if (count <= 1)
-		return 0;
+	int* i = pbegin;
+	++i;
+	if (i == pend)
+		return;
 
-	for (i = count - 1; i>0 && n[i - 1] >= n[i]; i--);
-	tail = i;
+	i = pend;
+	--i;
 
-	if (tail > 0) {
-		for (j = count - 1; j>tail && n[j] <= n[tail - 1]; j--);
-		swap8(&n[tail - 1], &n[j]);
+	while (1) {
+		int* j = i;
+		--i;
+
+		if (*i < *j) {
+			int* k = pend;
+
+			while (!(*i < *--k))
+				/* pass */;
+
+			swap(i, k);
+			reverse(j, pend);
+			return; // true
+		}
+
+		if (i == pbegin) {
+			reverse(pbegin, pend);
+			return; // false
+		}
 	}
-
-	for (i = tail, j = count - 1; i<j; i++, j--)
-		swap8(&n[i], &n[j]);
-
-	return (tail != 0);
 }
 
 static __thread uint32_t s_ntime = 0;
@@ -87,9 +103,9 @@ static uint8_t hashOrder[HASH_FUNC_COUNT + 1] = { 0 };
 #define HASH_FUNC_COUNT_PERMUTATIONS_7 5040
 #define HASH_FUNC_COUNT_PERMUTATIONS 40320
 
-static __thread uint8_t permutation_1[HASH_FUNC_COUNT_1];
-static __thread uint8_t permutation_2[HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_1];
-static __thread uint8_t permutation_3[HASH_FUNC_COUNT_3 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_1];
+static __thread int permutation_1[HASH_FUNC_COUNT_1];
+static __thread int permutation_2[HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_1];
+static __thread int permutation_3[HASH_FUNC_COUNT_3 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_1];
 
 static void get_travel_order(uint32_t ntime)
 {
@@ -101,17 +117,17 @@ static void get_travel_order(uint32_t ntime)
 
 	uint32_t steps_1 = (ntime - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS_7;
 	for (uint32_t i = 0; i < steps_1; i++) {
-		nextPerm(permutation_1, (int)permutation_1 + HASH_FUNC_COUNT_1);
+		next_permutation(permutation_1, permutation_1 + HASH_FUNC_COUNT_1);
 	}
 
 	uint32_t steps_2 = (ntime + HASH_FUNC_VAR_1 - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS;
 	for (uint32_t i = 0; i < steps_2; i++) {
-		nextPerm(permutation_2 + HASH_FUNC_COUNT_1, (int)permutation_2 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2);
+		next_permutation(permutation_2 + HASH_FUNC_COUNT_1, permutation_2 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2);
 	}
 
 	uint32_t steps_3 = (ntime + HASH_FUNC_VAR_2 - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS_7;
 	for (uint32_t i = 0; i < steps_3; i++) {
-		nextPerm(permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2, (int)permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_3);
+		next_permutation(permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2, (int)permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_3);
 	}
 
 	for (int i = 0; i < 8; i++)
@@ -164,17 +180,17 @@ extern "C" void bitcore_hash(void *output, const void *input)
 
 		uint32_t steps_1 = (ntime - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS_7;
 		for (uint32_t i = 0; i < steps_1; i++) {
-			nextPerm(permutation_1, (int)permutation_1 + HASH_FUNC_COUNT_1);
+			next_permutation(permutation_1, permutation_1 + HASH_FUNC_COUNT_1);
 		}
 
 		uint32_t steps_2 = (ntime + HASH_FUNC_VAR_1 - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS;
 		for (uint32_t i = 0; i < steps_2; i++) {
-			nextPerm(permutation_2 + HASH_FUNC_COUNT_1, (int)permutation_2 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2);
+			next_permutation(permutation_2 + HASH_FUNC_COUNT_1, permutation_2 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2);
 		}
 
 		uint32_t steps_3 = (ntime + HASH_FUNC_VAR_2 - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS_7;
 		for (uint32_t i = 0; i < steps_3; i++) {
-			nextPerm(permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2, (int)permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_3);
+			next_permutation(permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2, permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_3);
 		}
 
 		for (int i = 0; i < 8; i++)
