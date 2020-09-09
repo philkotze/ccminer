@@ -112,6 +112,8 @@ static void get_travel_order(uint32_t ntime)
 	ntime = 1599098833;
 	char* sptr;
 
+	applog(LOG_DEBUG, "hi111");
+
 	for (int i = 0; i < HASH_FUNC_COUNT_1; i++)
 		hashOrder[i] = i;
 
@@ -172,21 +174,29 @@ extern "C" void bitcore_hash(void *output, const void *input)
 	sph_gost512_context      ctx_gost;
 	sph_haval256_5_context    ctx_haval;
 
+	applog(LOG_DEBUG, "hi4");
+
 	if (s_sequence == UINT32_MAX) {
 		uint32_t* data = (uint32_t*)input;
 		//const uint32_t ntime = (opt_benchmark || !data[17]) ? (uint32_t) time(NULL) : data[17];
 
 		char* sptr;
 
+		applog(LOG_DEBUG, "hi5");
 		const uint32_t ntime = 1599098833;
 
+		applog(LOG_DEBUG, "hi6");
 		for (int i = 0; i < HASH_FUNC_COUNT_1; i++)
 			hashOrder[i] = i;
+
+		applog(LOG_DEBUG, "hi7");
 
 		uint32_t steps_1 = (ntime - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS_7;
 		for (uint32_t i = 0; i < steps_1; i++) {
 			next_permutation(permutation_1, permutation_1 + HASH_FUNC_COUNT_1);
 		}
+
+		applog(LOG_DEBUG, "hi8");
 
 		uint32_t steps_2 = (ntime + HASH_FUNC_VAR_1 - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS;
 		for (uint32_t i = 0; i < steps_2; i++) {
