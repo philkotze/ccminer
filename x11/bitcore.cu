@@ -118,7 +118,7 @@ extern "C" void bitcore_hash(void *output, const void *input)
 	sph_haval256_5_context    ctx_haval;
 
 	if (s_sequence == UINT32_MAX) {
-		uint32_t *data = (uint32_t*) input;
+		uint32_t* data = (uint32_t*)input;
 		//const uint32_t ntime = (opt_benchmark || !data[17]) ? (uint32_t) time(NULL) : data[17];
 
 		char* sptr;
@@ -143,7 +143,7 @@ extern "C" void bitcore_hash(void *output, const void *input)
 			nextPerm(permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2, (int)permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_3);
 		}
 
-		for(int i = 0; i < 8;i++)
+		for (int i = 0; i < 8; i++)
 			sprintf(sptr, "%u", (uint32_t)permutation_1[i]);
 
 		for (int i = 8; i < 16; i++)
@@ -151,6 +151,7 @@ extern "C" void bitcore_hash(void *output, const void *input)
 
 		for (int i = 16; i < 23; i++)
 			sprintf(sptr, "%u", (uint32_t)permutation_3[i]);
+	}
 
 	void *in = (void*) input;
 	int size = 80;
