@@ -114,8 +114,20 @@ static void get_travel_order(uint32_t ntime)
 
 	applog(LOG_DEBUG, "h2-1");
 
-	for (int i = 0; i < HASH_FUNC_COUNT_1; i++)
-		hashOrder[i] = i;
+	//Init1
+	for (uint32_t i = 1; i < HASH_FUNC_COUNT_1; i++) {
+		permutation_1[i] = i;
+	}
+
+	//Init2
+	for (uint32_t i = HASH_FUNC_COUNT_1; i < HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_1; i++) {
+		permutation_2[i] = i;
+	}
+
+	//Init3
+	for (uint32_t i = HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2; i < HASH_FUNC_COUNT_3 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_1; i++) {
+		permutation_3[i] = i;
+	}
 
 	uint32_t steps_1 = (ntime - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS_7;
 	for (uint32_t i = 0; i < steps_1; i++) {
