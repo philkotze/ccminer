@@ -7,24 +7,35 @@
 #include <memory.h>
 #include <unistd.h>
 
-#define HASH_FUNC_BASE_TIMESTAMP 1492973331U
-#define HASH_FUNC_COUNT 10
-#define HASH_FUNC_COUNT_PERMUTATIONS 40320U
+#define HASH_FUNC_BASE_TIMESTAMP 1492973331 // Bitcore  Genesis
+#define HASH_FUNC_COUNT_1 8
+#define HASH_FUNC_COUNT_2 8
+#define HASH_FUNC_COUNT_3 7
+#define HASH_FUNC_COUNT 23
+#define HASH_FUNC_VAR_1 3333
+#define HASH_FUNC_VAR_2 2100
+#define HASH_FUNC_COUNT_PERMUTATIONS_7 5040
+#define HASH_FUNC_COUNT_PERMUTATIONS 40320
 
 extern "C" {
-#include "sph/sph_blake.h"
-#include "sph/sph_bmw.h"
-#include "sph/sph_groestl.h"
-#include "sph/sph_skein.h"
-#include "sph/sph_jh.h"
-#include "sph/sph_keccak.h"
-#include "sph/sph_luffa.h"
-#include "sph/sph_cubehash.h"
-#include "sph/sph_shavite.h"
-#include "sph/sph_simd.h"
-#if HASH_FUNC_COUNT > 10
-#include "sph/sph_echo.h"
-#endif
+#include <sph/sph_blake.h>
+#include <sph/sph_bmw.h>
+#include <sph/sph_groestl.h>
+#include <sph/sph_jh.h>
+#include <sph/sph_keccak.h>
+#include <sph/sph_skein.h>
+#include <sph/sph_luffa.h>
+#include <sph/sph_cubehash.h>
+#include <sph/sph_shavite.h>
+#include <sph/sph_simd.h>
+#include <sph/sph_echo.h>
+#include <sph/sph_hamsi.h>
+#include <sph/sph_fugue.h>
+#include <sph/sph_shabal.h>
+#include <sph/sph_whirlpool.h>
+#include <sph/sph_streebog.h>
+#include <sph/sph_haval.h>
+#include <sph/sph_sha2.h>
 }
 
 #include "miner.h"
@@ -33,23 +44,6 @@ extern "C" {
 
 static uint32_t *d_hash[MAX_GPUS];
 
-enum Algo {
-	BLAKE = 0,
-	BMW,
-	GROESTL,
-	SKEIN,
-	JH,
-	KECCAK,
-	LUFFA,
-	CUBEHASH,
-	SHAVITE,
-	SIMD,
-#if HASH_FUNC_COUNT > 10
-	ECHO,
-#endif
-	MAX_ALGOS_COUNT
-};
-
 inline void swap8(uint8_t *a, uint8_t *b)
 {
 	uint8_t t = *a;
@@ -57,11 +51,6 @@ inline void swap8(uint8_t *a, uint8_t *b)
 	*b = t;
 }
 
-inline void initPerm(uint8_t n[], int count)
-{
-	for (int i = 0; i < count; i++)
-		n[i] = i;
-}
 
 static int nextPerm(uint8_t n[], int count)
 {
@@ -84,79 +73,89 @@ static int nextPerm(uint8_t n[], int count)
 	return (tail != 0);
 }
 
-static void getAlgoString(char *str, int seq)
-{
-	uint8_t algoList[HASH_FUNC_COUNT];
-	char *sptr;
-
-	initPerm(algoList, HASH_FUNC_COUNT);
-
-	for (int k = 0; k < seq; k++) {
-		nextPerm(algoList, HASH_FUNC_COUNT);
-	}
-
-	sptr = str;
-	for (int j = 0; j < HASH_FUNC_COUNT; j++) {
-		if (algoList[j] >= 10)
-			sprintf(sptr, "%c", 'A' + (algoList[j] - 10));
-		else
-			sprintf(sptr, "%u", (uint32_t) algoList[j]);
-		sptr++;
-	}
-	*sptr = '\0';
-}
-
 static __thread uint32_t s_ntime = 0;
 static uint32_t s_sequence = UINT32_MAX;
 static uint8_t s_firstalgo = 0xFF;
-static char hashOrder[HASH_FUNC_COUNT + 1] = { 0 };
+static uint8_t hashOrder[HASH_FUNC_COUNT + 1] = { 0 };
+#define HASH_FUNC_BASE_TIMESTAMP_1 1492973331 // Bitcore  Genesis
+#define HASH_FUNC_COUNT_1 8
+#define HASH_FUNC_COUNT_2 8
+#define HASH_FUNC_COUNT_3 7
+#define HASH_FUNC_COUNT_TOTAL 23
+#define HASH_FUNC_VAR_1 3333
+#define HASH_FUNC_VAR_2 2100
+#define HASH_FUNC_COUNT_PERMUTATIONS_7 5040
+#define HASH_FUNC_COUNT_PERMUTATIONS 40320
 
-#define INITIAL_DATE HASH_FUNC_BASE_TIMESTAMP
-static inline uint32_t getCurrentAlgoSeq(uint32_t ntime)
-{
-	// unlike x11evo, the permutation changes often (with ntime)
-	return (uint32_t) (ntime - INITIAL_DATE) % HASH_FUNC_COUNT_PERMUTATIONS;
-}
+static __thread uint8_t permutation_1[HASH_FUNC_COUNT_1];
+static __thread uint8_t permutation_2[HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_1];
+static __thread uint8_t permutation_3[HASH_FUNC_COUNT_3 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_1];
 
-// To finish...
-static void get_travel_order(uint32_t ntime, char *permstr)
-{
-	uint32_t seq = getCurrentAlgoSeq(ntime);
-	if (s_sequence != seq) {
-		getAlgoString(permstr, seq);
-		s_sequence = seq;
-	}
-}
 
 // CPU Hash
 extern "C" void bitcore_hash(void *output, const void *input)
 {
 	uint32_t _ALIGN(64) hash[64/4] = { 0 };
+	uint32_t s_ntime = UINT32_MAX;
 
 	sph_blake512_context     ctx_blake;
 	sph_bmw512_context       ctx_bmw;
 	sph_groestl512_context   ctx_groestl;
-	sph_skein512_context     ctx_skein;
 	sph_jh512_context        ctx_jh;
 	sph_keccak512_context    ctx_keccak;
-	sph_luffa512_context     ctx_luffa1;
-	sph_cubehash512_context  ctx_cubehash1;
-	sph_shavite512_context   ctx_shavite1;
-	sph_simd512_context      ctx_simd1;
-#if HASH_FUNC_COUNT > 10
-	sph_echo512_context      ctx_echo1;
-#endif
+	sph_skein512_context     ctx_skein;
+	sph_luffa512_context     ctx_luffa;
+	sph_cubehash512_context  ctx_cubehash;
+	sph_shavite512_context   ctx_shavite;
+	sph_simd512_context      ctx_simd;
+	sph_echo512_context      ctx_echo;
+	sph_hamsi512_context     ctx_hamsi;
+	sph_fugue512_context     ctx_fugue;
+	sph_shabal512_context    ctx_shabal;
+	sph_whirlpool_context    ctx_whirlpool;
+	sph_sha512_context       ctx_sha512;
+	sph_gost512_context      ctx_gost;
+	sph_haval256_5_context    ctx_haval;
 
 	if (s_sequence == UINT32_MAX) {
 		uint32_t *data = (uint32_t*) input;
-		const uint32_t ntime = (opt_benchmark || !data[17]) ? (uint32_t) time(NULL) : data[17];
-		get_travel_order(ntime, hashOrder);
-	}
+		//const uint32_t ntime = (opt_benchmark || !data[17]) ? (uint32_t) time(NULL) : data[17];
+
+		char* sptr;
+
+		const uint32_t ntime = 1599098833;
+
+		for (int i = 0; i < HASH_FUNC_COUNT_1; i++)
+			hashOrder[i] = i;
+
+		uint32_t steps_1 = (ntime - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS_7;
+		for (uint32_t i = 0; i < steps_1; i++) {
+			nextPerm(permutation_1, (int)permutation_1 + HASH_FUNC_COUNT_1);
+		}
+
+		uint32_t steps_2 = (ntime + HASH_FUNC_VAR_1 - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS;
+		for (uint32_t i = 0; i < steps_2; i++) {
+			nextPerm(permutation_2 + HASH_FUNC_COUNT_1, (int)permutation_2 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2);
+		}
+
+		uint32_t steps_3 = (ntime + HASH_FUNC_VAR_2 - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS_7;
+		for (uint32_t i = 0; i < steps_3; i++) {
+			nextPerm(permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2, (int)permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_3);
+		}
+
+		for(int i = 0; i < 8;i++)
+			sprintf(sptr, "%u", (uint32_t)permutation_1[i]);
+
+		for (int i = 8; i < 16; i++)
+			sprintf(sptr, "%u", (uint32_t)permutation_2[i]);
+
+		for (int i = 16; i < 23; i++)
+			sprintf(sptr, "%u", (uint32_t)permutation_3[i]);
 
 	void *in = (void*) input;
 	int size = 80;
 
-	const int hashes = (int) strlen(hashOrder);
+	/*const int hashes = (int) strlen(hashOrder);
 
 	for (int i = 0; i < hashes; i++)
 	{
@@ -200,36 +199,36 @@ extern "C" void bitcore_hash(void *output, const void *input)
 			sph_keccak512_close(&ctx_keccak, hash);
 			break;
 		case LUFFA:
-			sph_luffa512_init(&ctx_luffa1);
-			sph_luffa512(&ctx_luffa1, in, size);
-			sph_luffa512_close(&ctx_luffa1, hash);
+			sph_luffa512_init(&ctx_luffa);
+			sph_luffa512(&ctx_luffa, in, size);
+			sph_luffa512_close(&ctx_luffa, hash);
 			break;
 		case CUBEHASH:
-			sph_cubehash512_init(&ctx_cubehash1);
-			sph_cubehash512(&ctx_cubehash1, in, size);
-			sph_cubehash512_close(&ctx_cubehash1, hash);
+			sph_cubehash512_init(&ctx_cubehash);
+			sph_cubehash512(&ctx_cubehash, in, size);
+			sph_cubehash512_close(&ctx_cubehash, hash);
 			break;
 		case SHAVITE:
-			sph_shavite512_init(&ctx_shavite1);
-			sph_shavite512(&ctx_shavite1, in, size);
-			sph_shavite512_close(&ctx_shavite1, hash);
+			sph_shavite512_init(&ctx_shavite);
+			sph_shavite512(&ctx_shavite, in, size);
+			sph_shavite512_close(&ctx_shavite, hash);
 			break;
 		case SIMD:
-			sph_simd512_init(&ctx_simd1);
-			sph_simd512(&ctx_simd1, in, size);
-			sph_simd512_close(&ctx_simd1, hash);
+			sph_simd512_init(&ctx_simd);
+			sph_simd512(&ctx_simd, in, size);
+			sph_simd512_close(&ctx_simd, hash);
 			break;
 #if HASH_FUNC_COUNT > 10
 		case ECHO:
-			sph_echo512_init(&ctx_echo1);
-			sph_echo512(&ctx_echo1, in, size);
-			sph_echo512_close(&ctx_echo1, hash);
+			sph_echo512_init(&ctx_echo);
+			sph_echo512(&ctx_echo, in, size);
+			sph_echo512_close(&ctx_echo, hash);
 			break;
 #endif
 		}
 	}
 
-	memcpy(output, hash, 32);
+	memcpy(output, hash, 32);*/
 }
 
 //#define _DEBUG
