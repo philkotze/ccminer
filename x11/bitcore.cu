@@ -115,6 +115,8 @@ static void get_travel_order(uint32_t ntime)
 	for (int i = 0; i < HASH_FUNC_COUNT_1; i++)
 		hashOrder[i] = i;
 
+	return;
+
 	uint32_t steps_1 = (ntime - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS_7;
 	for (uint32_t i = 0; i < steps_1; i++) {
 		next_permutation(permutation_1, permutation_1 + HASH_FUNC_COUNT_1);
