@@ -615,9 +615,11 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 		quark_blake512_cpu_hash_80(thr_id, throughput, pdata[19], d_hash[thr_id]);
 		TRACE("blake80:");
 
+		applog(LOG_DEBUG, "hi1-6.1");
+
 		debuglog_hex(d_hash[thr_id], 64);
 
-		applog(LOG_DEBUG, "hi1-6");
+		applog(LOG_DEBUG, "hi1-6.2");
 
 		for (uint32_t i = 1; i < HASH_FUNC_COUNT_1; i++) {
 			switch (permutation_1[i]) {
