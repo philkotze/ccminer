@@ -572,6 +572,7 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 		x17_sha512_cpu_init(thr_id, throughput);
 		x17_haval256_cpu_init(thr_id, throughput);
 
+		applog(LOG_DEBUG, "hi1-2");
 
 		CUDA_CALL_OR_RET_X(cudaMalloc(&d_hash[thr_id], (size_t) 64 * throughput), -1);
 		CUDA_CALL_OR_RET_X(cudaMemset(d_hash[thr_id], 0, (size_t) 64 * throughput), -1);
@@ -581,18 +582,13 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 		init[thr_id] = true;
 	}
 
+	applog(LOG_DEBUG, "hi1-3");
+
 	uint32_t endiandata[20];
 	for (int k=0; k < 19; k++)
 		be32enc(&endiandata[k], pdata[k]);
 
 	cuda_check_cpu_setTarget(ptarget);
-
-	const int hashes = 40;
-	const char first = hashOrder[0];
-	const uint8_t algo80 = first >= 'A' ? first - 'A' + 10 : first - '0';
-	if (algo80 != s_firstalgo) {
-		s_firstalgo = algo80;
-	}
 
 	// first algo seems locked to blake in bitcore, fine!
 	quark_blake512_cpu_setBlock_80(thr_id, endiandata);
