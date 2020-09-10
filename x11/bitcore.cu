@@ -132,72 +132,6 @@ static __thread int permutation_2[HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_1];
 static __thread int permutation_3[HASH_FUNC_COUNT_3 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_1];
 static __thread int algoCount = 0;
 
-static void GetAlgo(int i)
-{
-	switch (permutation_1[i]) {
-	case 1:
-		hashOrder[algoCount] = 
-
-		sph_blake512_init(&ctx_blake);
-		sph_blake512(&ctx_blake, hashB, dataLen);
-		sph_blake512_close(&ctx_blake, hashB);
-		break;
-	case 2:
-		sph_simd512_init(&ctx_simd);
-		sph_simd512(&ctx_simd, hashA, dataLen);
-		sph_simd512_close(&ctx_simd, hashB);
-
-		sph_bmw512_init(&ctx_bmw);
-		sph_bmw512(&ctx_bmw, hashB, dataLen);
-		sph_bmw512_close(&ctx_bmw, hashB);
-		break;
-	case 3:
-		sph_groestl512_init(&ctx_groestl);
-		sph_groestl512(&ctx_groestl, hashA, dataLen);
-		sph_groestl512_close(&ctx_groestl, hashB);
-		break;
-	case 4:
-		sph_whirlpool_init(&ctx_whirlpool);
-		sph_whirlpool(&ctx_whirlpool, hashA, dataLen);
-		sph_whirlpool_close(&ctx_whirlpool, hashB);
-
-		sph_jh512_init(&ctx_jh);
-		sph_jh512(&ctx_jh, hashB, dataLen);
-		sph_jh512_close(&ctx_jh, hashB);
-		break;
-	case 5:
-		sph_gost512_init(&ctx_gost);
-		sph_gost512(&ctx_gost, hashA, dataLen);
-		sph_gost512_close(&ctx_gost, hashB);
-
-		debuglog_hex(hashB, 256);
-
-		sph_keccak512_init(&ctx_keccak);
-		sph_keccak512(&ctx_keccak, hashB, dataLen);
-		sph_keccak512_close(&ctx_keccak, hashB);
-
-		debuglog_hex(hashB, 256);
-		break;
-	case 6:
-		sph_fugue512_init(&ctx_fugue);
-		sph_fugue512(&ctx_fugue, hashA, dataLen);
-		sph_fugue512_close(&ctx_fugue, hashB);
-
-		sph_skein512_init(&ctx_skein);
-		sph_skein512(&ctx_skein, hashB, dataLen);
-		sph_skein512_close(&ctx_skein, hashB);
-		break;
-	case 7:
-		sph_shavite512_init(&ctx_shavite);
-		sph_shavite512(&ctx_shavite, hashA, dataLen);
-		sph_shavite512_close(&ctx_shavite, hashB);
-
-		sph_luffa512_init(&ctx_luffa);
-		sph_luffa512(&ctx_luffa, hashB, dataLen);
-		sph_luffa512_close(&ctx_luffa, hashB);
-		break;
-}
-
 static void get_travel_order(uint32_t ntime)
 {
 	//ntime = 1599098833;
@@ -330,83 +264,223 @@ extern "C" void bitcore_hash(void *output, const void *input)
 			sprintf(sptr, "%u", (uint32_t)permutation_3[i]);
 	}
 
-	void *in = (void*) input;
-	int size = 80;
+	int dataLen = 80;
+	void* hashA = (void*)input;
 
-	/*const int hashes = (int) strlen(hashOrder);
+	sph_blake512_init(&ctx_blake);
+	sph_blake512(&ctx_blake, hashA, dataLen);
+	sph_blake512_close(&ctx_blake, hash);
 
-	for (int i = 0; i < hashes; i++)
-	{
-		const char elem = hashOrder[i];
-		uint8_t algo = elem >= 'A' ? elem - 'A' + 10 : elem - '0';
+	for (uint32_t i = 1; i < HASH_FUNC_COUNT_1; i++) {
+		dataLen = 64;
 
-		if (i > 0) {
-			in = (void*) hash;
-			size = 64;
-		}
+		switch (permutation_1[i]) {
+		case 1:
+			sph_echo512_init(&ctx_echo);
+			sph_echo512(&ctx_echo, hashA, dataLen);
+			sph_echo512_close(&ctx_echo, hash);
 
-		switch (algo) {
-		case BLAKE:
 			sph_blake512_init(&ctx_blake);
-			sph_blake512(&ctx_blake, in, size);
+			sph_blake512(&ctx_blake, hash, dataLen);
 			sph_blake512_close(&ctx_blake, hash);
 			break;
-		case BMW:
+		case 2:
+			sph_simd512_init(&ctx_simd);
+			sph_simd512(&ctx_simd, hashA, dataLen);
+			sph_simd512_close(&ctx_simd, hash);
+
 			sph_bmw512_init(&ctx_bmw);
-			sph_bmw512(&ctx_bmw, in, size);
+			sph_bmw512(&ctx_bmw, hash, dataLen);
 			sph_bmw512_close(&ctx_bmw, hash);
 			break;
-		case GROESTL:
+		case 3:
 			sph_groestl512_init(&ctx_groestl);
-			sph_groestl512(&ctx_groestl, in, size);
+			sph_groestl512(&ctx_groestl, hashA, dataLen);
 			sph_groestl512_close(&ctx_groestl, hash);
 			break;
-		case SKEIN:
-			sph_skein512_init(&ctx_skein);
-			sph_skein512(&ctx_skein, in, size);
-			sph_skein512_close(&ctx_skein, hash);
-			break;
-		case JH:
+		case 4:
+			sph_whirlpool_init(&ctx_whirlpool);
+			sph_whirlpool(&ctx_whirlpool, hashA, dataLen);
+			sph_whirlpool_close(&ctx_whirlpool, hash);
+
 			sph_jh512_init(&ctx_jh);
-			sph_jh512(&ctx_jh, in, size);
+			sph_jh512(&ctx_jh, hash, dataLen);
 			sph_jh512_close(&ctx_jh, hash);
 			break;
-		case KECCAK:
+		case 5:
+			sph_gost512_init(&ctx_gost);
+			sph_gost512(&ctx_gost, hashA, dataLen);
+			sph_gost512_close(&ctx_gost, hash);
+
 			sph_keccak512_init(&ctx_keccak);
-			sph_keccak512(&ctx_keccak, in, size);
+			sph_keccak512(&ctx_keccak, hash, dataLen);
 			sph_keccak512_close(&ctx_keccak, hash);
 			break;
-		case LUFFA:
+		case 6:
+			sph_fugue512_init(&ctx_fugue);
+			sph_fugue512(&ctx_fugue, hashA, dataLen);
+			sph_fugue512_close(&ctx_fugue, hash);
+
+			sph_skein512_init(&ctx_skein);
+			sph_skein512(&ctx_skein, hash, dataLen);
+			sph_skein512_close(&ctx_skein, hash);
+			break;
+		case 7:
+			sph_shavite512_init(&ctx_shavite);
+			sph_shavite512(&ctx_shavite, hashA, dataLen);
+			sph_shavite512_close(&ctx_shavite, hash);
+
 			sph_luffa512_init(&ctx_luffa);
-			sph_luffa512(&ctx_luffa, in, size);
+			sph_luffa512(&ctx_luffa, hash, dataLen);
 			sph_luffa512_close(&ctx_luffa, hash);
 			break;
-		case CUBEHASH:
-			sph_cubehash512_init(&ctx_cubehash);
-			sph_cubehash512(&ctx_cubehash, in, size);
-			sph_cubehash512_close(&ctx_cubehash, hash);
-			break;
-		case SHAVITE:
-			sph_shavite512_init(&ctx_shavite);
-			sph_shavite512(&ctx_shavite, in, size);
-			sph_shavite512_close(&ctx_shavite, hash);
-			break;
-		case SIMD:
-			sph_simd512_init(&ctx_simd);
-			sph_simd512(&ctx_simd, in, size);
-			sph_simd512_close(&ctx_simd, hash);
-			break;
-#if HASH_FUNC_COUNT > 10
-		case ECHO:
-			sph_echo512_init(&ctx_echo);
-			sph_echo512(&ctx_echo, in, size);
-			sph_echo512_close(&ctx_echo, hash);
-			break;
-#endif
 		}
 	}
 
-	memcpy(output, hash, 32);*/
+	for (int i = HASH_FUNC_COUNT_1; i < HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2; i++) {
+		switch (permutation_2[i]) {
+		case 8:
+			sph_whirlpool_init(&ctx_whirlpool);
+			sph_whirlpool(&ctx_whirlpool, hashA, dataLen);
+			sph_whirlpool_close(&ctx_whirlpool, hash);
+
+			sph_cubehash512_init(&ctx_cubehash);
+			sph_cubehash512(&ctx_cubehash, hash, dataLen);
+			sph_cubehash512_close(&ctx_cubehash, hash);
+			break;
+		case 9:
+			sph_jh512_init(&ctx_jh);
+			sph_jh512(&ctx_jh, hashA, dataLen);
+			sph_jh512_close(&ctx_jh, hash);
+
+			sph_shavite512_init(&ctx_shavite);
+			sph_shavite512(&ctx_shavite, hash, dataLen);
+			sph_shavite512_close(&ctx_shavite, hash);
+			break;
+		case 10:
+			sph_blake512_init(&ctx_blake);
+			sph_blake512(&ctx_blake, hashA, dataLen);
+			sph_blake512_close(&ctx_blake, hash);
+
+			sph_simd512_init(&ctx_simd);
+			sph_simd512(&ctx_simd, hash, dataLen);
+			sph_simd512_close(&ctx_simd, hash);
+			break;
+		case 11:
+			sph_shabal512_init(&ctx_shabal);
+			sph_shabal512(&ctx_shabal, hashA, dataLen);
+			sph_shabal512_close(&ctx_shabal, hash);
+
+			sph_echo512_init(&ctx_echo);
+			sph_echo512(&ctx_echo, hash, dataLen);
+			sph_echo512_close(&ctx_echo, hash);
+			break;
+		case 12:
+			sph_hamsi512_init(&ctx_hamsi);
+			sph_hamsi512(&ctx_hamsi, hashA, dataLen);
+			sph_hamsi512_close(&ctx_hamsi, hash);
+			break;
+		case 13:
+			sph_bmw512_init(&ctx_bmw);
+			sph_bmw512(&ctx_bmw, hashA, dataLen);
+			sph_bmw512_close(&ctx_bmw, hash);
+
+			sph_fugue512_init(&ctx_fugue);
+			sph_fugue512(&ctx_fugue, hash, dataLen);
+			sph_fugue512_close(&ctx_fugue, hash);
+			break;
+		case 14:
+			sph_keccak512_init(&ctx_keccak);
+			sph_keccak512(&ctx_keccak, hashA, dataLen);
+			sph_keccak512_close(&ctx_keccak, hash);
+
+			sph_shabal512_init(&ctx_shabal);
+			sph_shabal512(&ctx_shabal, hash, dataLen);
+			sph_shabal512_close(&ctx_shabal, hash);
+			break;
+		case 15:
+			sph_luffa512_init(&ctx_luffa);
+			sph_luffa512(&ctx_luffa, hashA, dataLen);
+			sph_luffa512_close(&ctx_luffa, hash);
+
+			sph_whirlpool_init(&ctx_whirlpool);
+			sph_whirlpool(&ctx_whirlpool, hash, dataLen);
+			sph_whirlpool_close(&ctx_whirlpool, hash);
+			break;
+		}
+
+	}
+
+	for (int i = HASH_FUNC_COUNT_2; i < HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_3; i++) {
+		switch (permutation_3[i]) {
+		case 16:
+			sph_sha512_init(&ctx_sha512);
+			sph_sha512(&ctx_sha512, hashA, dataLen);
+			sph_sha512_close(&ctx_sha512, hash);
+
+			sph_haval256_5_init(&ctx_haval);
+			sph_haval256_5(&ctx_haval, hash, dataLen);
+			sph_haval256_5_close(&ctx_haval, hash);
+			break;
+		case 17:
+			sph_skein512_init(&ctx_skein);
+			sph_skein512(&ctx_skein, hashA, dataLen);
+			sph_skein512_close(&ctx_skein, hash);
+
+			sph_groestl512_init(&ctx_groestl);
+			sph_groestl512(&ctx_groestl, hash, dataLen);
+			sph_groestl512_close(&ctx_groestl, hash);
+			break;
+		case 18:
+			sph_simd512_init(&ctx_simd);
+			sph_simd512(&ctx_simd, hashA, dataLen);
+			sph_simd512_close(&ctx_simd, hash);
+
+			sph_hamsi512_init(&ctx_hamsi);
+			sph_hamsi512(&ctx_hamsi, hash, dataLen);
+			sph_hamsi512_close(&ctx_hamsi, hash);
+			break;
+		case 19:
+			sph_gost512_init(&ctx_gost);
+			sph_gost512(&ctx_gost, hashA, dataLen);
+			sph_gost512_close(&ctx_gost, hash);
+
+			sph_haval256_5_init(&ctx_haval);
+			sph_haval256_5(&ctx_haval, hash, dataLen);
+			sph_haval256_5_close(&ctx_haval, hash);
+			break;
+		case 20:
+			sph_cubehash512_init(&ctx_cubehash);
+			sph_cubehash512(&ctx_cubehash, hashA, dataLen);
+			sph_cubehash512_close(&ctx_cubehash, hash);
+
+			sph_sha512_init(&ctx_sha512);
+			sph_sha512(&ctx_sha512, hash, dataLen);
+			sph_sha512_close(&ctx_sha512, hash);
+			break;
+		case 21:
+			sph_echo512_init(&ctx_echo);
+			sph_echo512(&ctx_echo, hashA, dataLen);
+			sph_echo512_close(&ctx_echo, hash);
+
+			sph_shavite512_init(&ctx_shavite);
+			sph_shavite512(&ctx_shavite, hash, dataLen);
+			sph_shavite512_close(&ctx_shavite, hash);
+			break;
+		case 22:
+			sph_luffa512_init(&ctx_luffa);
+			sph_luffa512(&ctx_luffa, hashA, dataLen);
+			sph_luffa512_close(&ctx_luffa, hash);
+
+			sph_shabal512_init(&ctx_shabal);
+			sph_shabal512(&ctx_shabal, hash, dataLen);
+			sph_shabal512_close(&ctx_shabal, hash);
+			break;
+		}
+
+	}
+
+	memcpy(output, &hash[352], 32);
 }
 
 //#define _DEBUG
