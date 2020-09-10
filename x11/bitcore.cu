@@ -489,6 +489,18 @@ extern "C" void bitcore_hash(void *output, const void *input)
 
 void quark_blake512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce, uint32_t *d_nonceVector, uint32_t *d_outputHash, int order);
 
+void debuglog_hex(void* data, int len)
+{
+	uint8_t* const bin = (uint8_t*)data;
+	char* hex = (char*)calloc(1, len * 2 + 2);
+	if (!hex) return;
+	for (int i = 0; i < len; i++)
+		sprintf(hex + strlen(hex), "%02x", bin[i]);
+	strcpy(hex + strlen(hex), "\n");
+	printf(hex);
+	free(hex);
+}
+
 static bool init[MAX_GPUS] = { 0 };
 enum Algo {
 	BLAKE = 0,
@@ -603,6 +615,8 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 		quark_blake512_cpu_hash_80(thr_id, throughput, pdata[19], d_hash[thr_id]);
 		TRACE("blake80:");
 
+		debuglog_hex(d_hash[thr_id], 64);
+
 		applog(LOG_DEBUG, "hi1-6");
 
 		for (uint32_t i = 1; i < HASH_FUNC_COUNT_1; i++) {
@@ -633,11 +647,17 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 				TRACE("4b:");
 				break;
 			case 5:
+				applog(LOG_DEBUG, "hi1-7");
+
 				streebog_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
 				TRACE("5a:");
 
+				applog(LOG_DEBUG, "hi1-8");
+
 				quark_keccak512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
 				TRACE("5b:");
+
+				applog(LOG_DEBUG, "hi1-9");
 				break;
 			case 6:
 				x13_fugue512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
