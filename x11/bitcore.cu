@@ -173,7 +173,7 @@ static void get_travel_order(uint32_t ntime)
 		next_permutation(permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2, permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_3);
 	}
 
-	//applog(LOG_DEBUG, "h2-4");
+	applog(LOG_DEBUG, "h2-4");
 
 	//for (int i = 0; i < 8; i++)
 	//	hashOrder[i] = permutation_1[i];
@@ -538,6 +538,8 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 
 	if (opt_benchmark)
 		ptarget[7] = 0x5;
+
+	applog(LOG_DEBUG, "hi1-1");
 
 	if (!init[thr_id])
 	{
