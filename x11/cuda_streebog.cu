@@ -788,6 +788,12 @@ void streebog_cpu_hash_64(int thr_id, uint32_t threads, uint32_t *d_hash)
 	streebog_gpu_hash_64<<<grid, block>>>((uint64_t*)d_hash);
 }
 
+__host__
+void streebog_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce, uint32_t* d_nonceVector, uint32_t* d_hash, int order)
+{
+	streebog_cpu_hash_64(thr_id, threads, d_hash);
+}
+
 #undef T0
 #undef T1
 #undef T2

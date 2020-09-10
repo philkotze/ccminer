@@ -42,7 +42,31 @@ extern "C" {
 #include "cuda_helper.h"
 #include "cuda_x11.h"
 
-static uint32_t *d_hash[MAX_GPUS];
+static uint32_t* d_hash[MAX_GPUS];
+
+extern void x16_echo512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t* d_hash);
+
+extern void x13_hamsi512_cpu_init(int thr_id, uint32_t threads);
+extern void x13_hamsi512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce, uint32_t* d_nonceVector, uint32_t* d_hash, int order);
+
+extern void x13_fugue512_cpu_init(int thr_id, uint32_t threads);
+extern void x13_fugue512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce, uint32_t* d_nonceVector, uint32_t* d_hash, int order);
+extern void x13_fugue512_cpu_free(int thr_id);
+
+extern void x14_shabal512_cpu_init(int thr_id, uint32_t threads);
+extern void x14_shabal512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce, uint32_t* d_nonceVector, uint32_t* d_hash, int order);
+
+extern void x15_whirlpool_cpu_init(int thr_id, uint32_t threads, int flag);
+extern void x15_whirlpool_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce, uint32_t* d_nonceVector, uint32_t* d_hash, int order);
+extern void x15_whirlpool_cpu_free(int thr_id);
+
+extern void x17_sha512_cpu_init(int thr_id, uint32_t threads);
+extern void x17_sha512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce, uint32_t* d_hash);
+
+extern void x17_haval256_cpu_init(int thr_id, uint32_t threads);
+extern void x17_haval256_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce, uint32_t* d_hash, const int outlen);
+
+extern void streebog_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce, uint32_t* d_nonceVector, uint32_t* d_hash, int order);
 
 static void swap(int* a, int* b) {
 	int c = *a;
@@ -106,13 +130,80 @@ static uint8_t hashOrder[HASH_FUNC_COUNT + 1] = { 0 };
 static __thread int permutation_1[HASH_FUNC_COUNT_1];
 static __thread int permutation_2[HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_1];
 static __thread int permutation_3[HASH_FUNC_COUNT_3 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_1];
+static __thread int algoCount = 0;
+
+static void GetAlgo(int i)
+{
+	switch (permutation_1[i]) {
+	case 1:
+		hashOrder[algoCount] = 
+
+		sph_blake512_init(&ctx_blake);
+		sph_blake512(&ctx_blake, hashB, dataLen);
+		sph_blake512_close(&ctx_blake, hashB);
+		break;
+	case 2:
+		sph_simd512_init(&ctx_simd);
+		sph_simd512(&ctx_simd, hashA, dataLen);
+		sph_simd512_close(&ctx_simd, hashB);
+
+		sph_bmw512_init(&ctx_bmw);
+		sph_bmw512(&ctx_bmw, hashB, dataLen);
+		sph_bmw512_close(&ctx_bmw, hashB);
+		break;
+	case 3:
+		sph_groestl512_init(&ctx_groestl);
+		sph_groestl512(&ctx_groestl, hashA, dataLen);
+		sph_groestl512_close(&ctx_groestl, hashB);
+		break;
+	case 4:
+		sph_whirlpool_init(&ctx_whirlpool);
+		sph_whirlpool(&ctx_whirlpool, hashA, dataLen);
+		sph_whirlpool_close(&ctx_whirlpool, hashB);
+
+		sph_jh512_init(&ctx_jh);
+		sph_jh512(&ctx_jh, hashB, dataLen);
+		sph_jh512_close(&ctx_jh, hashB);
+		break;
+	case 5:
+		sph_gost512_init(&ctx_gost);
+		sph_gost512(&ctx_gost, hashA, dataLen);
+		sph_gost512_close(&ctx_gost, hashB);
+
+		debuglog_hex(hashB, 256);
+
+		sph_keccak512_init(&ctx_keccak);
+		sph_keccak512(&ctx_keccak, hashB, dataLen);
+		sph_keccak512_close(&ctx_keccak, hashB);
+
+		debuglog_hex(hashB, 256);
+		break;
+	case 6:
+		sph_fugue512_init(&ctx_fugue);
+		sph_fugue512(&ctx_fugue, hashA, dataLen);
+		sph_fugue512_close(&ctx_fugue, hashB);
+
+		sph_skein512_init(&ctx_skein);
+		sph_skein512(&ctx_skein, hashB, dataLen);
+		sph_skein512_close(&ctx_skein, hashB);
+		break;
+	case 7:
+		sph_shavite512_init(&ctx_shavite);
+		sph_shavite512(&ctx_shavite, hashA, dataLen);
+		sph_shavite512_close(&ctx_shavite, hashB);
+
+		sph_luffa512_init(&ctx_luffa);
+		sph_luffa512(&ctx_luffa, hashB, dataLen);
+		sph_luffa512_close(&ctx_luffa, hashB);
+		break;
+}
 
 static void get_travel_order(uint32_t ntime)
 {
-	ntime = 1599098833;
-	char* sptr;
+	//ntime = 1599098833;
+	//char* sptr;
 
-	applog(LOG_DEBUG, "h2-1");
+	//applog(LOG_DEBUG, "h2-1");
 
 	//Init1
 	for (uint32_t i = 1; i < HASH_FUNC_COUNT_1; i++) {
@@ -134,32 +225,35 @@ static void get_travel_order(uint32_t ntime)
 		next_permutation(permutation_1, permutation_1 + HASH_FUNC_COUNT_1);
 	}
 
-	applog(LOG_DEBUG, "h2-2");
+	//applog(LOG_DEBUG, "h2-2");
 
 	uint32_t steps_2 = (ntime + HASH_FUNC_VAR_1 - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS;
 	for (uint32_t i = 0; i < steps_2; i++) {
 		next_permutation(permutation_2 + HASH_FUNC_COUNT_1, permutation_2 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2);
 	}
 
-	applog(LOG_DEBUG, "h2-3");
+	//applog(LOG_DEBUG, "h2-3");
 
 	uint32_t steps_3 = (ntime + HASH_FUNC_VAR_2 - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS_7;
 	for (uint32_t i = 0; i < steps_3; i++) {
 		next_permutation(permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2, permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_3);
 	}
 
-	applog(LOG_DEBUG, "h2-4");
+	//applog(LOG_DEBUG, "h2-4");
 
 	for (int i = 0; i < 8; i++)
-		printf("%d\n", permutation_1[i]);
+		hashOrder[i] = permutation_1[i];
+	//	printf("%d\n", permutation_1[i]);
 
 	for (int i = 8; i < 16; i++)
-		printf("%d\n", permutation_2[i]);
+		hashOrder[i] = permutation_2[i];
+	//	printf("%d\n", permutation_2[i]);
 
 	for (int i = 16; i < 23; i++)
-		printf("%d\n", permutation_3[i]);
+		hashOrder[i] = permutation_3[i];
+	//	printf("%d\n", permutation_3[i]);
 
-	applog(LOG_DEBUG, "h2-5");
+	//applog(LOG_DEBUG, "h2-5");
 }
 
 
@@ -167,11 +261,11 @@ static void get_travel_order(uint32_t ntime)
 // CPU Hash
 extern "C" void bitcore_hash(void *output, const void *input)
 {
-	applog(LOG_DEBUG, "hi2");
+	//applog(LOG_DEBUG, "hi2");
 	uint32_t _ALIGN(64) hash[64/4] = { 0 };
 	uint32_t s_ntime = UINT32_MAX;
 
-	applog(LOG_DEBUG, "hi3");
+	//applog(LOG_DEBUG, "hi3");
 
 	sph_blake512_context     ctx_blake;
 	sph_bmw512_context       ctx_bmw;
@@ -192,7 +286,7 @@ extern "C" void bitcore_hash(void *output, const void *input)
 	sph_gost512_context      ctx_gost;
 	sph_haval256_5_context    ctx_haval;
 
-	applog(LOG_DEBUG, "hi4");
+	//applog(LOG_DEBUG, "hi4");
 
 	if (s_sequence == UINT32_MAX) {
 		uint32_t* data = (uint32_t*)input;
@@ -200,21 +294,21 @@ extern "C" void bitcore_hash(void *output, const void *input)
 
 		char* sptr;
 
-		applog(LOG_DEBUG, "hi5");
+		//applog(LOG_DEBUG, "hi5");
 		const uint32_t ntime = 1599098833;
 
-		applog(LOG_DEBUG, "hi6");
+		//applog(LOG_DEBUG, "hi6");
 		for (int i = 0; i < HASH_FUNC_COUNT_1; i++)
 			hashOrder[i] = i;
 
-		applog(LOG_DEBUG, "hi7");
+	//	applog(LOG_DEBUG, "hi7");
 
 		uint32_t steps_1 = (ntime - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS_7;
 		for (uint32_t i = 0; i < steps_1; i++) {
 			next_permutation(permutation_1, permutation_1 + HASH_FUNC_COUNT_1);
 		}
 
-		applog(LOG_DEBUG, "hi8");
+		//applog(LOG_DEBUG, "hi8");
 
 		uint32_t steps_2 = (ntime + HASH_FUNC_VAR_1 - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS;
 		for (uint32_t i = 0; i < steps_2; i++) {
@@ -333,9 +427,14 @@ enum Algo {
 	CUBEHASH,
 	SHAVITE,
 	SIMD,
-#if HASH_FUNC_COUNT > 10
 	ECHO,
-#endif
+	HAMSI,
+	FUGUE,
+	SHABAL,
+	WHIRLPOOL,
+	SHA512,
+	GOST,
+	HAVAL,
 	MAX_ALGOS_COUNT
 };
 
@@ -389,9 +488,15 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 		if (x11_simd512_cpu_init(thr_id, throughput) != 0) {
 			return 0;
 		}
-#if HASH_FUNC_COUNT > 10
 		x11_echo512_cpu_init(thr_id, throughput);
-#endif
+		x13_hamsi512_cpu_init(thr_id, throughput);
+		x13_fugue512_cpu_init(thr_id, throughput);
+		x14_shabal512_cpu_init(thr_id, throughput);
+		x15_whirlpool_cpu_init(thr_id, throughput);
+		x17_sha512_cpu_init(thr_id, throughput);
+		x17_haval256_cpu_init(thr_id, throughput);
+
+
 		CUDA_CALL_OR_RET_X(cudaMalloc(&d_hash[thr_id], (size_t) 64 * throughput), -1);
 		CUDA_CALL_OR_RET_X(cudaMemset(d_hash[thr_id], 0, (size_t) 64 * throughput), -1);
 
@@ -422,59 +527,168 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 		quark_blake512_cpu_hash_80(thr_id, throughput, pdata[19], d_hash[thr_id]);
 		TRACE("blake80:");
 
-		for (int i = 1; i < hashes; i++)
-		{
-			const char elem = hashOrder[i];
-			const uint8_t algo64 = elem >= 'A' ? elem - 'A' + 10 : elem - '0';
-
-			switch (algo64) {
-			case BLAKE:
-				quark_blake512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
-				TRACE("blake  :");
-				break;
-			case BMW:
-				quark_bmw512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
-				TRACE("bmw    :");
-				break;
-			case GROESTL:
-				quark_groestl512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
-				TRACE("groestl:");
-				break;
-			case SKEIN:
-				quark_skein512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
-				TRACE("skein  :");
-				break;
-			case JH:
-				quark_jh512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
-				TRACE("jh512  :");
-				break;
-			case KECCAK:
-				quark_keccak512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
-				TRACE("keccak :");
-				break;
-			case LUFFA:
-				x11_luffa512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
-				TRACE("luffa  :");
-				break;
-			case CUBEHASH:
-				x11_cubehash512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
-				TRACE("cube   :");
-				break;
-			case SHAVITE:
-				x11_shavite512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
-				TRACE("shavite:");
-				break;
-			case SIMD:
-				x11_simd512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
-				TRACE("simd   :");
-				break;
-#if HASH_FUNC_COUNT > 10
-			case ECHO:
+		for (uint32_t i = 1; i < HASH_FUNC_COUNT_1; i++) {
+			switch (permutation_1[i]) {
+			case 1:
 				x11_echo512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
-				TRACE("echo   :");
+				TRACE("1a   :");
+
+				quark_blake512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("1b   :");
 				break;
-#endif
+			case 2:
+				x11_simd512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("2a   :");
+
+				quark_bmw512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("2b    :");
+				break;
+			case 3:
+				quark_groestl512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("3a:");
+				break;
+			case 4:
+				x15_whirlpool_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("4a:");
+
+				quark_jh512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("4b:");
+				break;
+			case 5:
+				streebog_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("5a:");
+
+				quark_keccak512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("5b:");
+				break;
+			case 6:
+				x13_fugue512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("6a:");
+
+				quark_skein512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("6b:");
+				break;
+			case 7:
+				x11_shavite512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("7a:");
+
+				x11_luffa512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("7b:");
+				break;
 			}
+		}
+
+		for (int i = HASH_FUNC_COUNT_1; i < HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2; i++) {
+			switch (permutation_2[i]) {
+			case 8:
+				x15_whirlpool_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("8a:");
+
+				x11_cubehash512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("8b:");
+				break;
+			case 9:
+				quark_jh512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("9a:");
+
+				x11_shavite512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("9b:");
+				break;
+			case 10:
+				quark_blake512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("10a   :");
+
+				x11_simd512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("10b   :");
+				break;
+			case 11:
+				x14_shabal512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("11a   :");
+
+				x11_echo512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("11b   :");
+				break;
+			case 12:
+				x13_hamsi512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("12   :");
+				break;
+			case 13:
+				quark_bmw512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("13a   :");
+
+				x13_fugue512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("13b:");
+				break;
+			case 14:
+				quark_keccak512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("14a:");
+
+				x14_shabal512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("14b   :");
+				break;
+			case 15:
+				x11_luffa512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("15a   :");
+
+				x15_whirlpool_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("15b   :");
+				break;
+			}
+		}
+
+		for (int i = HASH_FUNC_COUNT_2; i < HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_3; i++) {
+			switch (permutation_3[i]) {
+			case 16:
+				x17_sha512_cpu_hash_64(thr_id, throughput, pdata[19], d_hash[thr_id]);
+				TRACE("16a   :");
+
+				x14_shabal512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("16b   :");
+				break;
+			case 17:
+				quark_skein512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("17a:");
+
+				quark_groestl512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("17b:");
+				break;
+			case 18:
+				x11_simd512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("18a   :");
+
+				x13_hamsi512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("18b   :");
+				break;
+			case 19:
+				streebog_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("19a:");
+
+				x17_haval256_cpu_hash_64(thr_id, throughput, pdata[19], d_hash[thr_id], 64);
+				TRACE("19b:");
+				break;
+			case 20:
+				x11_cubehash512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("20a:");
+
+				x17_sha512_cpu_hash_64(thr_id, throughput, pdata[19], d_hash[thr_id]);
+				TRACE("20b   :");
+				break;
+			case 21:
+				x11_echo512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("21a   :");
+
+				x11_shavite512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("21a:	 :");
+				break;
+			case 22:
+				x11_luffa512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("22a:");
+
+				x14_shabal512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
+				TRACE("22b   :");
+				break;
+			}
+
 		}
 
 		*hashes_done = pdata[19] - first_nonce + throughput;
