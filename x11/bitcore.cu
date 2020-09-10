@@ -175,17 +175,17 @@ static void get_travel_order(uint32_t ntime)
 
 	//applog(LOG_DEBUG, "h2-4");
 
-	for (int i = 0; i < 8; i++)
-		hashOrder[i] = permutation_1[i];
-	//	printf("%d\n", permutation_1[i]);
+	//for (int i = 0; i < 8; i++)
+	//	hashOrder[i] = permutation_1[i];
+	////	printf("%d\n", permutation_1[i]);
 
-	for (int i = 8; i < 16; i++)
-		hashOrder[i] = permutation_2[i];
-	//	printf("%d\n", permutation_2[i]);
+	//for (int i = 8; i < 16; i++)
+	//	hashOrder[i] = permutation_2[i];
+	////	printf("%d\n", permutation_2[i]);
 
-	for (int i = 16; i < 23; i++)
-		hashOrder[i] = permutation_3[i];
-	//	printf("%d\n", permutation_3[i]);
+	//for (int i = 16; i < 23; i++)
+	//	hashOrder[i] = permutation_3[i];
+	////	printf("%d\n", permutation_3[i]);
 
 	//applog(LOG_DEBUG, "h2-5");
 }
