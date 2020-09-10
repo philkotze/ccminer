@@ -617,7 +617,8 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 
 		applog(LOG_DEBUG, "hi1-6.1");
 
-		debuglog_hex(d_hash[thr_id], 64);
+		printf("%d\n", d_hash[thr_id]);
+		//debuglog_hex(d_hash[thr_id], 64);
 
 		applog(LOG_DEBUG, "hi1-6.2");
 
