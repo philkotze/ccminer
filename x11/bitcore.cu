@@ -566,7 +566,7 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 		x13_hamsi512_cpu_init(thr_id, throughput);
 		x13_fugue512_cpu_init(thr_id, throughput);
 		x14_shabal512_cpu_init(thr_id, throughput);
-		x15_whirlpool_cpu_init(thr_id, throughput);
+		x15_whirlpool_cpu_init(thr_id, throughput, 0);
 		x17_sha512_cpu_init(thr_id, throughput);
 		x17_haval256_cpu_init(thr_id, throughput);
 
