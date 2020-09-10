@@ -590,14 +590,20 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 
 	cuda_check_cpu_setTarget(ptarget);
 
+	applog(LOG_DEBUG, "hi1-4");
+
 	// first algo seems locked to blake in bitcore, fine!
 	quark_blake512_cpu_setBlock_80(thr_id, endiandata);
+
+	applog(LOG_DEBUG, "hi1-5");
 
 	do {
 		// Hash with CUDA
 
 		quark_blake512_cpu_hash_80(thr_id, throughput, pdata[19], d_hash[thr_id]);
 		TRACE("blake80:");
+
+		applog(LOG_DEBUG, "hi1-6");
 
 		for (uint32_t i = 1; i < HASH_FUNC_COUNT_1; i++) {
 			switch (permutation_1[i]) {
