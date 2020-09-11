@@ -596,15 +596,16 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 
 	applog(LOG_DEBUG, "hi1-3");
 
-	uint32_t endiandata[20];
+	/*uint32_t endiandata[20];
 	for (int k=0; k < 19; k++)
-		be32enc(&endiandata[k], pdata[k]);
+		be32enc(&endiandata[k], pdata[k]);*/
 
 	cuda_check_cpu_setTarget(ptarget);
 
 	applog(LOG_DEBUG, "hi1-4");
 
 	// first algo seems locked to blake in bitcore, fine!
+	uint32_t* endiandata = { 0 };
 	quark_blake512_cpu_setBlock_80(thr_id, endiandata);
 
 	applog(LOG_DEBUG, "hi1-5");
