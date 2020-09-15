@@ -229,7 +229,7 @@ extern "C" void bitcore_hash(void *output, const void *input)
 		char* sptr;
 
 		//applog(LOG_DEBUG, "hi5");
-		const uint32_t ntime = 1599098833;
+	//	const uint32_t ntime = 1599098833;
 
 		//applog(LOG_DEBUG, "hi6");
 		for (int i = 0; i < HASH_FUNC_COUNT_1; i++)
@@ -237,19 +237,19 @@ extern "C" void bitcore_hash(void *output, const void *input)
 
 	//	applog(LOG_DEBUG, "hi7");
 
-		uint32_t steps_1 = (ntime - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS_7;
+		uint32_t steps_1 = (s_ntime - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS_7;
 		for (uint32_t i = 0; i < steps_1; i++) {
 			next_permutation(permutation_1, permutation_1 + HASH_FUNC_COUNT_1);
 		}
 
 		//applog(LOG_DEBUG, "hi8");
 
-		uint32_t steps_2 = (ntime + HASH_FUNC_VAR_1 - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS;
+		uint32_t steps_2 = (s_ntime + HASH_FUNC_VAR_1 - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS;
 		for (uint32_t i = 0; i < steps_2; i++) {
 			next_permutation(permutation_2 + HASH_FUNC_COUNT_1, permutation_2 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2);
 		}
 
-		uint32_t steps_3 = (ntime + HASH_FUNC_VAR_2 - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS_7;
+		uint32_t steps_3 = (s_ntime + HASH_FUNC_VAR_2 - HASH_FUNC_BASE_TIMESTAMP_1) % HASH_FUNC_COUNT_PERMUTATIONS_7;
 		for (uint32_t i = 0; i < steps_3; i++) {
 			next_permutation(permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2, permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_3);
 		}
