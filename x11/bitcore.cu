@@ -540,7 +540,7 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 
 	if (opt_debug || s_ntime != pdata[17] || s_sequence == UINT32_MAX) {
 		uint32_t ntime = swab32(work->data[17]);
-		applog(LOG_DEBUG, "hi1");
+		//applog(LOG_DEBUG, "hi1");
 		get_travel_order(ntime);
 		s_ntime = pdata[17];
 		if (opt_debug && !thr_id) {
