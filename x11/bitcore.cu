@@ -536,7 +536,7 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 
 	if (opt_benchmark) pdata[17] = swab32(0x59090909);
 
-	applog(LOG_DEBUG, "hi");
+	//applog(LOG_DEBUG, "hi");
 
 	if (opt_debug || s_ntime != pdata[17] || s_sequence == UINT32_MAX) {
 		uint32_t ntime = swab32(work->data[17]);
@@ -551,7 +551,7 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 	if (opt_benchmark)
 		ptarget[7] = 0x5;
 
-	applog(LOG_DEBUG, "hi1-1");
+	//applog(LOG_DEBUG, "hi1-1");
 
 	if (!init[thr_id])
 	{
@@ -584,7 +584,7 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 		x17_sha512_cpu_init(thr_id, throughput);
 		x17_haval256_cpu_init(thr_id, throughput);
 
-		applog(LOG_DEBUG, "hi1-2");
+		//applog(LOG_DEBUG, "hi1-2");
 
 		CUDA_CALL_OR_RET_X(cudaMalloc(&d_hash[thr_id], (size_t) 64 * throughput), -1);
 		CUDA_CALL_OR_RET_X(cudaMemset(d_hash[thr_id], 0, (size_t) 64 * throughput), -1);
@@ -594,21 +594,21 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 		init[thr_id] = true;
 	}
 
-	applog(LOG_DEBUG, "hi1-3");
+	//applog(LOG_DEBUG, "hi1-3");
 
-	/*uint32_t endiandata[20];
+	uint32_t endiandata[20];
 	for (int k=0; k < 19; k++)
-		be32enc(&endiandata[k], pdata[k]);*/
+		be32enc(&endiandata[k], pdata[k]);
 
 	cuda_check_cpu_setTarget(ptarget);
 
-	applog(LOG_DEBUG, "hi1-4");
+	//applog(LOG_DEBUG, "hi1-4");
 
 	// first algo seems locked to blake in bitcore, fine!
-	uint32_t endiandata[20] = { 0 };
+	//uint32_t endiandata[20] = { 0 };
 	quark_blake512_cpu_setBlock_80(thr_id, endiandata);
 
-	applog(LOG_DEBUG, "hi1-5");
+	//applog(LOG_DEBUG, "hi1-5");
 
 	do {
 		// Hash with CUDA
@@ -616,12 +616,12 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 		quark_blake512_cpu_hash_80(thr_id, throughput, pdata[19], d_hash[thr_id]);
 		TRACE("blake80:");
 
-		applog(LOG_DEBUG, "hi1-6.1");
+		//applog(LOG_DEBUG, "hi1-6.1");
 
-		printf("%d\n", d_hash[thr_id]);
+		//printf("%d\n", d_hash[thr_id]);
 		//debuglog_hex(d_hash[thr_id], 64);
 
-		applog(LOG_DEBUG, "hi1-6.2");
+		//applog(LOG_DEBUG, "hi1-6.2");
 
 		for (uint32_t i = 1; i < HASH_FUNC_COUNT_1; i++) {
 			switch (permutation_1[i]) {
@@ -651,17 +651,17 @@ extern "C" int scanhash_bitcore(int thr_id, struct work* work, uint32_t max_nonc
 				TRACE("4b:");
 				break;
 			case 5:
-				applog(LOG_DEBUG, "hi1-7");
+				//applog(LOG_DEBUG, "hi1-7");
 
 				streebog_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
 				TRACE("5a:");
 
-				applog(LOG_DEBUG, "hi1-8");
+				//applog(LOG_DEBUG, "hi1-8");
 
 				quark_keccak512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
 				TRACE("5b:");
 
-				applog(LOG_DEBUG, "hi1-9");
+				//applog(LOG_DEBUG, "hi1-9");
 				break;
 			case 6:
 				x13_fugue512_cpu_hash_64(thr_id, throughput, pdata[19], NULL, d_hash[thr_id], i);
