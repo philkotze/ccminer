@@ -173,7 +173,7 @@ static void get_travel_order(uint32_t ntime)
 		next_permutation(permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2, permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_3);
 	}
 
-	applog(LOG_DEBUG, "h2-4");
+	//applog(LOG_DEBUG, "h2-4");
 
 	//for (int i = 0; i < 8; i++)
 	//	hashOrder[i] = permutation_1[i];
@@ -254,14 +254,14 @@ extern "C" void bitcore_hash(void *output, const void *input)
 			next_permutation(permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2, permutation_3 + HASH_FUNC_COUNT_1 + HASH_FUNC_COUNT_2 + HASH_FUNC_COUNT_3);
 		}
 
-		for (int i = 0; i < 8; i++)
-			sprintf(sptr, "%u", (uint32_t)permutation_1[i]);
+		//for (int i = 0; i < 8; i++)
+		//	sprintf(sptr, "%u", (uint32_t)permutation_1[i]);
 
-		for (int i = 8; i < 16; i++)
-			sprintf(sptr, "%u", (uint32_t)permutation_2[i]);
+		//for (int i = 8; i < 16; i++)
+		//	sprintf(sptr, "%u", (uint32_t)permutation_2[i]);
 
-		for (int i = 16; i < 23; i++)
-			sprintf(sptr, "%u", (uint32_t)permutation_3[i]);
+		//for (int i = 16; i < 23; i++)
+		//	sprintf(sptr, "%u", (uint32_t)permutation_3[i]);
 	}
 
 	int dataLen = 80;
